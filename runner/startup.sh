@@ -17,6 +17,32 @@ function wait_for_process () {
     return 0
 }
 
+mkdir -p /etc/docker
+
+cat <<EOS > /etc/docker/daemon.json
+{
+EOS
+
+if [ -n "${MTU}" ]; then
+cat <<EOS > /etc/docker/daemon.json
+  "mtu": ${MTU},
+EOS
+# See https://docs.docker.com/engine/security/rootless/
+echo "environment=DOCKERD_ROOTLESS_ROOTLESSKIT_MTU=${MTU}" >> /etc/supervisor/conf.d/dockerd.conf
+fi
+
+cat <<EOS >> /etc/docker/daemon.json
+}
+EOS
+
+INFO "Using /etc/docker/daemon.json with the following content"
+
+cat /etc/docker/daemon.json
+
+INFO "Using /etc/supervisor/conf.d/dockerd.conf with the following content"
+
+cat /etc/supervisor/conf.d/dockerd.conf
+
 INFO "Starting supervisor"
 sudo /usr/bin/supervisord -n >> /dev/null 2>&1 &
 
